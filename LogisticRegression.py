@@ -3,18 +3,20 @@ import ProcessImage
 import os
 from multiprocessing import Pool
 from sklearn.linear_model import LogisticRegression
+from sklearn.svm import SVC
 from sklearn.cross_validation import train_test_split
 
 
 # preprocesses an image
 def preprocess_img(img):
     processed_img = ProcessImage.threshold(img)
+    # processed_img = img
     print("p-id:%s processed image" % os.getpid())
     return processed_img.flatten()
 
 if __name__ == "__main__":
     test = False
-    test_size = 1000
+    test_size = 10000
 
     train_x = numpy.fromfile('train_x.bin', dtype='uint8')
     train_x = train_x.reshape((100000, 60, 60))
@@ -32,14 +34,21 @@ if __name__ == "__main__":
 
     train_data, validation_data, train_labels, validation_labels = train_test_split(train_x, train_y, test_size=0.2)
 
-    log_reg = LogisticRegression()
+    '''
+    Uncomment to use logistic regression
+    '''
+    # classifier = LogisticRegression()
+    classifier = SVC()
 
     print("fitting data")
-    log_reg.fit(train_data, train_labels)
+    classifier.fit(train_data, train_labels)
 
+    '''
+    Uncomment to make a prediction
+    '''
     # log_reg.predict(validation_data)
     print("scoring data")
-    print(log_reg.score(validation_data, validation_labels))
+    print(classifier.score(validation_data, validation_labels))
 
 
 
