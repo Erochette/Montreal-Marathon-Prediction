@@ -24,22 +24,26 @@ preprocesses an image
 '''
 def preprocess_img(img):
     # Thresholds the image
-    processed_img = threshold(img)
+    processed_img = center_img(threshold(img))
+
+    #normalize values
+    processed_img[processed_img == 255] = 1.
+    processed_img[processed_img == 0] = 0.
 
     # prints the process id
     # (It's hard to get a counter working so this
     # just lets us know something has been processed)
     print("p-id:%s processed image" % os.getpid())
 
-    return processed_img.flatten()
+    return processed_img
 
 '''
 Thresholds an image array to get rid of background noise
 '''
 def threshold(img_array):
     # Thresholds the values
-    img_array[img_array < 225] = 0
-    img_array[img_array >= 225] = 255
+    img_array[img_array < 250] = 0
+    img_array[img_array >= 250] = 255
 
     # Applies median filters --
     # get's the median value around each pixel
@@ -63,12 +67,50 @@ def threshold(img_array):
     return img_array
 
 
+'''
+Centers the image
+Not accurate on images with a divide between the numbers
+Will improve later
+'''
+def center_img(img):
+    rows = (img != 0).sum(axis=0)
+    cols = (img != 0).sum(axis=1)
+
+    row_rolls = 0
+    past_cluster = False
+    for x in rows:
+        if x != 0:
+            past_cluster = True
+        if past_cluster:
+            if x == 0:
+                row_rolls -= 1
+        else:
+            if x == 0:
+                row_rolls += 1
+
+    col_rolls = 0
+    past_cluster = False
+    for x in cols:
+        if x != 0:
+            past_cluster = True
+        if past_cluster:
+            if x == 0:
+                col_rolls -= 1
+        else:
+            if x == 0:
+                col_rolls += 1
+
+    c_img = numpy.roll(img, -row_rolls / 2, axis=1)
+    c_img = numpy.roll(c_img, -col_rolls / 2, axis=0)
+    return c_img
+
+
 if __name__ == "__main__":
     x = numpy.fromfile('train_x.bin', dtype='uint8')
     x = x.reshape((100000, 60, 60))
-    index = 4
+    index = 52340
     org = x[index]
-    threshold_test = threshold(org.copy())
+    threshold_test = center_img(threshold(org.copy()))
     thresh = Image.fromarray(threshold_test)
     original = Image.fromarray(org)
     thresh.save("threshold_%s.png" % index)
