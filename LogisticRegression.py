@@ -1,22 +1,14 @@
 import numpy
 import ProcessImage
-import os
-from multiprocessing import Pool
 from sklearn.linear_model import LogisticRegression
 from sklearn.svm import SVC
 from sklearn.cross_validation import train_test_split
 
 
-# preprocesses an image
-def preprocess_img(img):
-    processed_img = ProcessImage.threshold(img)
-    # processed_img = img
-    print("p-id:%s processed image" % os.getpid())
-    return processed_img.flatten()
 
 if __name__ == "__main__":
     test = False
-    test_size = 10000
+    test_size = 1000
 
     train_x = numpy.fromfile('train_x.bin', dtype='uint8')
     train_x = train_x.reshape((100000, 60, 60))
@@ -28,10 +20,7 @@ if __name__ == "__main__":
         train_y = train_y[:test_size]
 
     print("pre-processing images")
-    pool = Pool()
-    train_x = pool.map(preprocess_img, train_x)
-    pool.close()
-
+    train_x = ProcessImage.process_images(train_x)
     train_data, validation_data, train_labels, validation_labels = train_test_split(train_x, train_y, test_size=0.2)
 
     '''
