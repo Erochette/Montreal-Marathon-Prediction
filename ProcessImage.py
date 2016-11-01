@@ -27,8 +27,8 @@ def preprocess_img(img):
     processed_img = center_img(threshold(img))
 
     #normalize values
-    processed_img[processed_img == 255] = 1.
-    processed_img[processed_img == 0] = 0.
+    processed_img[processed_img == 255] = 1
+    processed_img[processed_img == 0] = 0
 
     # prints the process id
     # (It's hard to get a counter working so this
