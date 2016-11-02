@@ -13,6 +13,10 @@ and omits many desirable features.
 import json
 import random
 import sys
+import csv
+import datetime
+import warnings
+
 
 # Homebrewed Libraries
 import ProcessImage
@@ -62,7 +66,7 @@ class CrossEntropyCost(object):
 
 
 #### Main Network class
-class Network(object):
+class NN_Classifier(object):
 
     def __init__(self, sizes, cost=CrossEntropyCost):
         """The list ``sizes`` contains the number of neurons in the respective
@@ -111,13 +115,25 @@ class Network(object):
         self.weights = [np.random.randn(y, x)
                         for x, y in zip(self.sizes[:-1], self.sizes[1:])]
 
+    def predict(self, X):
+        """
+        return list of predictions after training algorithm
+        """
+        print("Writing Prediciton file")
+        with open('predictions_%s.csv' % datetime.datetime.now(), 'wb') as output_file:
+            header = ['Id', 'Prediction']
+            writer = csv.DictWriter(output_file, fieldnames=header)
+            writer.writeheader()
+            for i, prediction in enumerate(X):
+                writer.writerow({'Id': i, 'Prediction': np.argmax(self.feedforward(prediction))})
+
     def feedforward(self, a):
         """Return the output of the network if ``a`` is input."""
         for b, w in zip(self.biases, self.weights):
             a = sigmoid(np.dot(w, a)+b)
         return a
 
-    def SGD(self, training_data, epochs, mini_batch_size, eta,
+    def fit(self, training_data, epochs, mini_batch_size, eta,
             lmbda = 0.0,
             evaluation_data=None,
             monitor_evaluation_cost=False,
@@ -156,26 +172,39 @@ class Network(object):
                     mini_batch, eta, lmbda, len(training_data))
 
             self.save('state.json')
-            print "Epoch %s training complete" % j
+            data = []
+            data_dict = {}
+            print(" ")
+            print("Epoch %s training complete" % j)
             if monitor_training_cost:
                 cost = self.total_cost(training_data, lmbda)
                 training_cost.append(cost)
-                print "Cost on training data: {}".format(cost)
+                print("Cost on training data: {}".format(cost))
+                train_cost = {'Training_Cost': cost}
+                data_dict.update(train_cost)
             if monitor_training_accuracy:
-                accuracy = self.accuracy(training_data, convert=True)
+                accuracy = self.accuracy(training_data)
                 training_accuracy.append(accuracy)
-                print "Accuracy on training data: {} / {}".format(
-                    accuracy, n)
+                print("Accuracy on training data: {} / {}".format(
+                    accuracy, n))
+                train_acc = {'Training_Accuracy': accuracy}
+                data_dict.update(train_acc)
             if monitor_evaluation_cost:
-                cost = self.total_cost(evaluation_data, lmbda, convert=True)
+                cost = self.total_cost(evaluation_data, lmbda)
                 evaluation_cost.append(cost)
-                print "Cost on evaluation data: {}".format(cost)
+                print("Cost on evaluation data: {}".format(cost))
+                valid_cost = {'Validation_Cost': cost}
+                data_dict.update(valid_cost)
             if monitor_evaluation_accuracy:
                 accuracy = self.accuracy(evaluation_data)
                 evaluation_accuracy.append(accuracy)
-                print "Accuracy on evaluation data: {} / {}".format(
-                    self.accuracy(evaluation_data), n_data)
-            print
+                print("Accuracy on evaluation data: {} / {}".format(
+                    self.accuracy(evaluation_data), n_data))
+                valid_acc = {'Validation_Accuracy': accuracy}
+                data_dict.update(valid_acc)
+            print(" ")
+            data.append(data_dict)
+            self.save_data(data)
         return evaluation_cost, evaluation_accuracy, \
             training_cost, training_accuracy
 
@@ -188,7 +217,9 @@ class Network(object):
         """
         nabla_b = [np.zeros(b.shape) for b in self.biases]
         nabla_w = [np.zeros(w.shape) for w in self.weights]
-        for x, y in mini_batch:
+        for i, (x, y) in enumerate(mini_batch):
+            sys.stdout.write("\rminibatch processing:%s/%s" % (i, len(mini_batch)))
+            sys.stdout.flush()
             delta_nabla_b, delta_nabla_w = self.backprop(x, y)
             nabla_b = [nb+dnb for nb, dnb in zip(nabla_b, delta_nabla_b)]
             nabla_w = [nw+dnw for nw, dnw in zip(nabla_w, delta_nabla_w)]
@@ -286,6 +317,14 @@ class Network(object):
         json.dump(data, f)
         f.close()
 
+    def save_data(self, data):
+        keys = data[0].keys()
+        with open('data.csv', 'ab') as data_file:
+            dict_writer = csv.DictWriter(data_file, keys)
+            dict_writer.writeheader()
+            dict_writer.writerows(data)
+        data_file.close()
+
 #### Loading a Network
 def load(filename):
     """Load a neural network from the file ``filename``.  Returns an
@@ -295,21 +334,12 @@ def load(filename):
     data = json.load(f)
     f.close()
     cost = getattr(sys.modules[__name__], data["cost"])
-    net = Network(data["sizes"], cost=cost)
+    net = NN_Classifier(data["sizes"], cost=cost)
     net.weights = [np.array(w) for w in data["weights"]]
     net.biases = [np.array(b) for b in data["biases"]]
     return net
 
 #### Miscellaneous functions
-def vectorized_result(j):
-    """Return a 10-dimensional unit vector with a 1.0 in the j'th position
-    and zeroes elsewhere.  This is used to convert a digit (0...9)
-    into a corresponding desired output from the neural network.
-    """
-    e = np.zeros((10, 1))
-    e[j] = 1.0
-    return e
-
 def sigmoid(z):
     """The sigmoid function."""
     return 1.0/(1.0+np.exp(-z))
@@ -355,16 +385,27 @@ def one_hot_encode(labels):
 
 
 if __name__ == '__main__':
+    warnings.filterwarnings("ignore")
+    # use load_dataset(1000) to only use 1000 of the training set
     X_train, y_train, X_valid, y_valid, X_test = load_dataset()
 
     y_train = one_hot_encode(y_train)
     y_valid = one_hot_encode(y_valid)
 
     train = [(x, np.expand_dims(y, axis=1)) for x,y in zip(X_train, y_train)]
-    validate = train = [(x, np.expand_dims(y, axis=1)) for x,y in zip(X_valid, y_valid)]
+
+    validate = [(x, np.expand_dims(y, axis=1)) for x,y in zip(X_valid, y_valid)]
+
     test = [(x) for x in X_test]
 
+    print("Building NN Classifier")
+    nn = NN_Classifier([3600, 4000, 19])
+    print("Fitting Data")
+    nn.fit(train, 2, 100, .9, 0.01, validate, True, True, True, True)
 
-    nn = Network([3600, 4000, 19])
+    print("Making Predictions")
+    predictions = nn.predict(test)
 
-    nn.SGD(train, 50, 100, .9, 0.01, validate, True, True, True, True)
+
+
+
