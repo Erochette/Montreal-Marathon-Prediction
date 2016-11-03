@@ -14,7 +14,7 @@ import json
 import random
 import sys
 import csv
-import datetime
+import time
 import warnings
 
 
@@ -120,7 +120,7 @@ class NN_Classifier(object):
         return list of predictions after training algorithm
         """
         print("Writing Prediciton file")
-        with open('predictions_%s.csv' % datetime.datetime.now(), 'wb') as output_file:
+        with open('predictions_%s.csv' % time.strftime("%Y%m%d-H%M%S"), 'ab') as output_file:
             header = ['Id', 'Prediction']
             writer = csv.DictWriter(output_file, fieldnames=header)
             writer.writeheader()
@@ -167,8 +167,8 @@ class NN_Classifier(object):
             mini_batches = [
                 training_data[k:k+mini_batch_size]
                 for k in xrange(0, n, mini_batch_size)]
-            for mini_batch in mini_batches:
-                self.update_mini_batch(
+            for i, mini_batch in enumerate(mini_batches):
+                self.update_mini_batch( ("%s / %s" % (i, len(mini_batches))),
                     mini_batch, eta, lmbda, len(training_data))
 
             self.save('state.json')
@@ -208,7 +208,7 @@ class NN_Classifier(object):
         return evaluation_cost, evaluation_accuracy, \
             training_cost, training_accuracy
 
-    def update_mini_batch(self, mini_batch, eta, lmbda, n):
+    def update_mini_batch(self, index, mini_batch, eta, lmbda, n):
         """Update the network's weights and biases by applying gradient
         descent using backpropagation to a single mini batch.  The
         ``mini_batch`` is a list of tuples ``(x, y)``, ``eta`` is the
@@ -218,7 +218,7 @@ class NN_Classifier(object):
         nabla_b = [np.zeros(b.shape) for b in self.biases]
         nabla_w = [np.zeros(w.shape) for w in self.weights]
         for i, (x, y) in enumerate(mini_batch):
-            sys.stdout.write("\rminibatch processing:%s/%s" % (i, len(mini_batch)))
+            sys.stdout.write("\rminibatch %s processing:%s/%s" % (index, i, len(mini_batch)))
             sys.stdout.flush()
             delta_nabla_b, delta_nabla_w = self.backprop(x, y)
             nabla_b = [nb+dnb for nb, dnb in zip(nabla_b, delta_nabla_b)]
@@ -262,7 +262,7 @@ class NN_Classifier(object):
             nabla_w[-l] = delta.dot(activations[-l-1].T)
         return (nabla_b, nabla_w)
 
-    def accuracy(self, data, convert=False):
+    def accuracy(self, data):
         """Return the number of inputs in ``data`` for which the neural
         network outputs the correct result. The neural network's
         output is assumed to be the index of whichever neuron in the
@@ -283,15 +283,11 @@ class NN_Classifier(object):
         representations can be found in
         mnist_loader.load_data_wrapper.
         """
-        # if convert:
-        #     results = [(np.argmax(self.feedforward(x)), np.argmax(y))
-        #                for (x, y) in data]
-        # else:
         results = [(np.argmax(self.feedforward(x)), np.argmax(y))
                     for (x, y) in data]
         return sum(int(x == int(y)) for (x, y) in results)
 
-    def total_cost(self, data, lmbda, convert=False):
+    def total_cost(self, data, lmbda):
         """Return the total cost for the data set ``data``.  The flag
         ``convert`` should be set to False if the data set is the
         training data (the usual case), and to True if the data set is
@@ -301,7 +297,6 @@ class NN_Classifier(object):
         cost = 0.0
         for x, y in data:
             a = self.feedforward(x)
-            # if convert: y = vectorized_result(y)
             cost += self.cost.fn(a, y)/len(data)
         cost += 0.5*(lmbda/len(data))*sum(
             np.linalg.norm(w)**2 for w in self.weights)
@@ -342,7 +337,9 @@ def load(filename):
 #### Miscellaneous functions
 def sigmoid(z):
     """The sigmoid function."""
-    return 1.0/(1.0+np.exp(-z))
+    # return 1.0/(1.0+np.exp(-z))
+    # return expit(z)
+    return z / (1 + abs(z))
 
 def sigmoid_prime(z):
     """Derivative of the sigmoid function."""
@@ -359,7 +356,7 @@ def load_dataset(subsetsize=None):
     train_x = train_x.reshape((100000, 60, 60))
 
     test_x = np.fromfile('test_x.bin', dtype='uint8')
-    test_x = test_x.reshape((20000, 3600, 1))
+    test_x = test_x.reshape((20000, 60, 60))
 
     train_y = np.genfromtxt('train_y.csv', delimiter=',', skip_header=1)[:, 1]
 
@@ -369,14 +366,15 @@ def load_dataset(subsetsize=None):
 
     print("pre-processing images")
     train_x = ProcessImage.process_images(train_x)
+    test_x = ProcessImage.process_images(test_x)
 
     X_train, X_val, y_train, y_val = train_test_split(train_x, train_y, test_size=0.2)
 
     val_size = subsetsize*0.2
     train_size = subsetsize - val_size
 
-    return np.array(X_train).reshape((train_size, 3600, 1)), np.array(y_train, dtype='int64'), np.array(X_val).reshape(
-        (val_size, 3600, 1)), np.array(y_val, dtype='int64'), test_x
+    return np.array(X_train).reshape((train_size, 900, 1)), np.array(y_train, dtype='int64'), np.array(X_val).reshape(
+        (val_size, 900, 1)), np.array(y_val, dtype='int64'), np.array(test_x).reshape(20000, 900, 1)
 
 
 def one_hot_encode(labels):
@@ -399,9 +397,9 @@ if __name__ == '__main__':
     test = [(x) for x in X_test]
 
     print("Building NN Classifier")
-    nn = NN_Classifier([3600, 4000, 19])
+    nn = NN_Classifier([900, 1000, 19])
     print("Fitting Data")
-    nn.fit(train, 2, 100, .9, 0.01, validate, True, True, True, True)
+    nn.fit(train, 500, 100, .9, 0.01, validate, True, True, True, True)
 
     print("Making Predictions")
     predictions = nn.predict(test)

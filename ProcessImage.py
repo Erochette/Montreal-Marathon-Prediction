@@ -35,7 +35,7 @@ def preprocess_img(img):
     # just lets us know something has been processed)
     print("p-id:%s processed image" % os.getpid())
 
-    return processed_img
+    return zoom(processed_img, 0.5)
 
 '''
 Thresholds an image array to get rid of background noise
@@ -110,7 +110,8 @@ if __name__ == "__main__":
     x = x.reshape((100000, 60, 60))
     index = 52340
     org = x[index]
-    threshold_test = center_img(threshold(org.copy()))
+    threshold_test = preprocess_img(org.copy())
+    print threshold_test.shape
     thresh = Image.fromarray(threshold_test)
     original = Image.fromarray(org)
     thresh.save("threshold_%s.png" % index)
