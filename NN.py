@@ -120,7 +120,7 @@ class NN_Classifier(object):
         return list of predictions after training algorithm
         """
         print("Writing Prediciton file")
-        with open('predictions_%s.csv' % time.strftime("%Y%m%d-H%M%S"), 'ab') as output_file:
+        with open('predictions_%s.csv' % time.strftime("%Y%m%d-%H%M%S"), 'ab') as output_file:
             header = ['Id', 'Prediction']
             writer = csv.DictWriter(output_file, fieldnames=header)
             writer.writeheader()
