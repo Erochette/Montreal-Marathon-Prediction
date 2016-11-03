@@ -397,9 +397,9 @@ if __name__ == '__main__':
     test = [(x) for x in X_test]
 
     print("Building NN Classifier")
-    nn = NN_Classifier([900, 1000, 19])
+    nn = NN_Classifier([900, 4000, 19])
     print("Fitting Data")
-    nn.fit(train, 500, 100, .9, 0.01, validate, True, True, True, True)
+    nn.fit(train, 500, 1000, .9, 0.01, validate, True, True, True, True)
 
     print("Making Predictions")
     predictions = nn.predict(test)
