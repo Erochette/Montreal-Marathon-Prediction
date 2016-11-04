@@ -146,7 +146,9 @@ def load_dataset(subsetsize=None):
     # return X_train, y_train,y_val, X_val,x_test
     # here you should enter the path to your MNIST data
 path = os.path.join(os.path.expanduser('~'), 'Documents/lasagne/train.csv')
+print "loading data.."
 X, y,y_val,X_val,x_test = load_dataset()
+print "Data loaded"
 figs, axes = plt.subplots(4, 4, figsize=(6, 6))
 for i in range(4):
     for j in range(4):
