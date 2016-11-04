@@ -25,12 +25,12 @@ def load_dataset(subsetsize=None):
         subset = False
         subsetsize = 100000
 
-    train_x = np.fromfile('train_x.bin', dtype='uint8')
-    train_x= ProcessImage.process_images(train_x)
+    train_x = np.fromfile('train_x.bin',dtype='uint8')
     train_x = train_x.reshape((100000, 60, 60))
+    train_x= ProcessImage.process_images(train_x)
     test_x = np.fromfile('test_x.bin', dtype='uint8')
-    test_x = ProcessImage.process_images(test_x)
     test_x = test_x.reshape((20000, 60, 60))
+    test_x = ProcessImage.process_images(test_x)
 
     train_y = np.genfromtxt('train_y.csv', delimiter=',', dtype='int32', skip_header=1)[:, 1]
 
