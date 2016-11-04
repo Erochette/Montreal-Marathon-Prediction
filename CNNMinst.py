@@ -193,6 +193,7 @@ net0 = NeuralNet(
     train_split=TrainSplit(eval_size=0.25),
     verbose=1,
 )
+print "starting to fit data"
 net0.fit(X, y)
 print "I finished fiting"
 results= net0.predict(test_x)
