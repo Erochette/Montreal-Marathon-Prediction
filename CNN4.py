@@ -153,6 +153,8 @@ net4 = NeuralNet(
     layers=layers4,
     update_learning_rate=0.01,
     verbose=2,
+    train_split=TrainSplit(eval_size=0.2),
+    max_epochs=200,
 )
 net4.initialize()
 #layer_info(net4)
@@ -161,7 +163,25 @@ net4.initialize()
 print "starting to fit data"
 print X.shape
 print y.shape
-net4.fit(X, y)
+i=0
+while(i<100):
+    net4.fit(X, y)
+    with open('net.pickle', 'wb') as f:
+        pickle.dump(net4, f, -1)
+    
+    results= net0.predict(test_x)
+
+    with open('CNNresultsWithOpt.csv','wb') as csvfile: #save for later
+        writer=csv.writer(csvfile)
+        for value in results:
+            writer.writerow(value)
+
+    with open('net.pickle', 'rb') as f:
+        net_pretrain = pickle.load(f)
+    
+    net4.load_params_from(net_pretrain)
+    i+=1;
+
 print "I finished fiting"
 results= net4.predict(test_x)
 print "I finished predicting"
