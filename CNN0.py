@@ -80,7 +80,7 @@ net0 = NeuralNet(
 
     update=adam,
     update_learning_rate=0.01,
-    update_momentum=0.9,
+    #update_momentum=0.9,
     #objective_l2=0.0025,
 
     train_split=TrainSplit(eval_size=0.25),
