@@ -4,6 +4,20 @@ from PIL import Image
 from scipy.ndimage import *
 from multiprocessing import Pool
 
+
+def process():
+    train_x = numpy.fromfile('train_x.bin', dtype='uint8')
+    train_x = train_x.reshape((100000, 60, 60))
+    test_x = numpy.fromfile('test_x.bin', dtype='uint8')
+    test_x = test_x.reshape((20000, 60, 60))
+
+    print("pre-processing images")
+    train_x = numpy.array(process_images(train_x))
+    test_x = numpy.array(process_images(test_x))
+
+    train_x.astype('uint8').tofile('processed_train_x.bin')
+    test_x.astype('uint8').tofile('processed_test_x.bin')
+
 '''
 Process all the images in a numpy array using multiprocessing
 '''
@@ -35,7 +49,7 @@ def preprocess_img(img):
     # just lets us know something has been processed)
     print("p-id:%s processed image" % os.getpid())
 
-    return zoom(processed_img, 0.5)
+    return processed_img
 
 '''
 Thresholds an image array to get rid of background noise
@@ -106,15 +120,17 @@ def center_img(img):
 
 
 if __name__ == "__main__":
-    x = numpy.fromfile('train_x.bin', dtype='uint8')
-    x = x.reshape((100000, 60, 60))
-    index = 52340
-    org = x[index]
-    threshold_test = preprocess_img(org.copy())
-    print threshold_test.shape
-    thresh = Image.fromarray(threshold_test)
-    original = Image.fromarray(org)
-    thresh.save("threshold_%s.png" % index)
-    original.save("original_%s.png" % index)
-    thresh.show()
-    original.show()
+    # x = numpy.fromfile('train_x.bin', dtype='uint8')
+    # x = x.reshape((100000, 60, 60))
+    # index = 52340
+    # org = x[index]
+    # threshold_test = preprocess_img(org.copy())
+    # print threshold_test.shape
+    # thresh = Image.fromarray(threshold_test)
+    # original = Image.fromarray(org)
+    # thresh.save("threshold_%s.png" % index)
+    # original.save("original_%s.png" % index)
+    # thresh.show()
+    # original.show()
+
+    process()
