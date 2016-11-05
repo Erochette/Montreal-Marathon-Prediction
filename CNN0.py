@@ -76,7 +76,7 @@ layers0 = [
 ]
 net0 = NeuralNet(
     layers=layers0,
-    max_epochs=200,
+    max_epochs=500,
 
     update=nesterov_momentum,
     update_learning_rate=0.01,
