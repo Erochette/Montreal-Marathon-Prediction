@@ -1,3 +1,7 @@
+try:
+    import cPickle as pickle
+except ImportError:  # Python 3
+    import pickle
 from lasagne.layers import DenseLayer
 from lasagne.layers import InputLayer
 from lasagne.layers import DropoutLayer
@@ -24,12 +28,14 @@ def load_dataset(subsetsize=None):
     train_x = train_x.reshape((100000,1,60, 60))
     #train_x= ProcessImage.process_images(train_x)
     #train_x = train_x.reshape(-1,1,60,60)
+    train_x=train_x[:100]
     test_x = np.fromfile('test_x.bin', dtype='uint8')
     test_x = test_x.reshape((-1,1, 60, 60))
     test_x = ProcessImage.process_images(test_x)
 
     train_y = np.genfromtxt('train_y.csv', delimiter=',', dtype='int32', skip_header=1)[:, 1]
     #train_y = train_y.flatten()
+    train_y=train_y[:100]
     train_x = np.array(train_x).astype(np.float32)
     train_y = np.array(train_y).astype(np.int32)
     test_x = np.array(test_x).astype(np.float32)
@@ -76,10 +82,12 @@ layers0 = [
 ]
 net0 = NeuralNet(
     layers=layers0,
-    max_epochs=500,
+    max_epochs=20,
 
+    #update=nesterov_momentum,
     update_learning_rate=0.01,
     update_momentum=0.9,
+    #objective_l2=0.0025,
 
     train_split=TrainSplit(eval_size=0.25),
     verbose=1,
@@ -87,7 +95,25 @@ net0 = NeuralNet(
 print "starting to fit data"
 print X.shape
 print y.shape
-net0.fit(X, y)
+i=0
+while(i<100):
+    net0.fit(X, y)
+    with open('net.pickle', 'wb') as f:
+        pickle.dump(net0, f, -1)
+    
+    results= net0.predict(test_x)
+
+    with open('CNNresultsWithOpt.csv','wb') as csvfile: #save for later
+        writer=csv.writer(csvfile)
+        for value in results:
+            writer.writerow(value)
+
+    with open('net.pickle', 'rb') as f:
+        net_pretrain = pickle.load(f)
+    
+    net0.load_params_from(net_pretrain)
+    i+=1;
+
 print "I finished fiting"
 results= net0.predict(test_x)
 print "I finished predicting"
