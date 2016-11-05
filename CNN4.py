@@ -153,6 +153,7 @@ net4 = NeuralNet(
     layers=layers4,
     update_learning_rate=0.01,
     verbose=2,
+    train_split=TrainSplit(eval_size=0.2),
     max_epochs=200,
 )
 net4.initialize()
