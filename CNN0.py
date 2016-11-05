@@ -78,10 +78,8 @@ net0 = NeuralNet(
     layers=layers0,
     max_epochs=500,
 
-    update=adam,
     update_learning_rate=0.01,
-    #update_momentum=0.9,
-    #objective_l2=0.0025,
+    update_momentum=0.9,
 
     train_split=TrainSplit(eval_size=0.25),
     verbose=1,
