@@ -1,8 +1,30 @@
 import numpy
 import os
-from PIL import Image
 from scipy.ndimage import *
 from multiprocessing import Pool
+
+
+def load_dataset(subsetsize=None, train_x_file_name='processed_train_x.bin',
+                 test_x_file_name='processed_test_x.bin'):
+    #Use differeent test_x_file_name and train_x_file_name
+    subset = subsetsize is None
+
+    train_x = numpy.fromfile(train_x_file_name, dtype='uint8')
+    train_x = train_x.reshape((100000, 60, 60))
+
+
+    test_x = numpy.fromfile(test_x_file_name, dtype='uint8')
+    test_x = test_x.reshape((20000, 60, 60))
+
+    train_y = numpy.genfromtxt('train_y.csv', delimiter=',', dtype='int32', skip_header=1)[:, 1]
+    if subset:
+        train_x = train_x[:subsetsize]
+        train_y = train_y[:subsetsize]
+
+    train_x = numpy.array(train_x).astype(numpy.float32)
+    train_y = numpy.array(train_y).astype(numpy.int32)
+    test_x = numpy.array(test_x).astype(numpy.float32)
+    return train_x, train_y, test_x
 
 
 def process():
