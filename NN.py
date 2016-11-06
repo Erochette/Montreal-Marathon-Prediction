@@ -373,8 +373,8 @@ def load_dataset(subsetsize=None):
     val_size = subsetsize*0.2
     train_size = subsetsize - val_size
 
-    return np.array(X_train).reshape((train_size, 900, 1)), np.array(y_train, dtype='int64'), np.array(X_val).reshape(
-        (val_size, 900, 1)), np.array(y_val, dtype='int64'), np.array(test_x).reshape(20000, 900, 1)
+    return np.array(X_train).reshape((train_size, 3600, 1)), np.array(y_train, dtype='int64'), np.array(X_val).reshape(
+        (val_size, 3600, 1)), np.array(y_val, dtype='int64'), np.array(test_x).reshape(20000, 3600, 1)
 
 
 def one_hot_encode(labels):
@@ -397,7 +397,7 @@ if __name__ == '__main__':
     test = [(x) for x in X_test]
 
     print("Building NN Classifier")
-    nn = NN_Classifier([900, 4000, 19])
+    nn = NN_Classifier([3600, 4000, 19])
     print("Fitting Data")
     nn.fit(train, 500, 1000, .9, 0.01, validate, True, True, True, True)
 
