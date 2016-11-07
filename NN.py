@@ -17,30 +17,9 @@ import csv
 import time
 import warnings
 
-
-# Homebrewed Libraries
-import ProcessImage
-
 # Third-party libraries
 import numpy as np
 from sklearn.cross_validation import train_test_split
-
-#### Define the quadratic and cross-entropy cost functions
-
-class QuadraticCost(object):
-
-    @staticmethod
-    def fn(a, y):
-        """Return the cost associated with an output ``a`` and desired output
-        ``y``.
-        """
-        return 0.5*np.linalg.norm(a-y)**2
-
-    @staticmethod
-    def delta(z, a, y):
-        """Return the error delta from the output layer."""
-        return (a-y) * sigmoid_prime(z)
-
 
 class CrossEntropyCost(object):
 
@@ -115,12 +94,12 @@ class NN_Classifier(object):
         self.weights = [np.random.randn(y, x)
                         for x, y in zip(self.sizes[:-1], self.sizes[1:])]
 
-    def predict(self, X):
+    def predict(self, X, name=None):
         """
         return list of predictions after training algorithm
         """
         print("Writing Prediciton file")
-        with open('predictions_%s.csv' % time.strftime("%Y%m%d-%H%M%S"), 'ab') as output_file:
+        with open('predictions%s_%s.csv' % (name, time.strftime("%Y%m%d-%H%M%S")), 'ab') as output_file:
             header = ['Id', 'Prediction']
             writer = csv.DictWriter(output_file, fieldnames=header)
             writer.writeheader()
@@ -352,11 +331,11 @@ def load_dataset(subsetsize=None):
         subset = False
         subsetsize = 100000
 
-    train_x = np.fromfile('train_x.bin', dtype='uint8')
-    train_x = train_x.reshape((100000, 60, 60))
+    train_x = np.fromfile('processed_train_x_small.bin', dtype='uint8')
+    train_x = train_x.reshape((100000, 30, 30))
 
-    test_x = np.fromfile('test_x.bin', dtype='uint8')
-    test_x = test_x.reshape((20000, 60, 60))
+    test_x = np.fromfile('processed_test_x_small.bin', dtype='uint8')
+    test_x = test_x.reshape((20000, 30, 30))
 
     train_y = np.genfromtxt('train_y.csv', delimiter=',', skip_header=1)[:, 1]
 
@@ -364,17 +343,17 @@ def load_dataset(subsetsize=None):
         train_x = train_x[:subsetsize]
         train_y = train_y[:subsetsize]
 
-    print("pre-processing images")
-    train_x = ProcessImage.process_images(train_x)
-    test_x = ProcessImage.process_images(test_x)
+    # print("pre-processing images")
+    # train_x = ProcessImage.process_images(train_x)
+    # test_x = ProcessImage.process_images(test_x)
 
     X_train, X_val, y_train, y_val = train_test_split(train_x, train_y, test_size=0.2)
 
     val_size = subsetsize*0.2
     train_size = subsetsize - val_size
 
-    return np.array(X_train).reshape((train_size, 3600, 1)), np.array(y_train, dtype='int64'), np.array(X_val).reshape(
-        (val_size, 3600, 1)), np.array(y_val, dtype='int64'), np.array(test_x).reshape(20000, 3600, 1)
+    return np.array(X_train).reshape((train_size, 900, 1)), np.array(y_train, dtype='int64'), np.array(X_val).reshape(
+        (val_size, 900, 1)), np.array(y_val, dtype='int64'), np.array(test_x).reshape(20000, 900, 1)
 
 
 def one_hot_encode(labels):
@@ -396,13 +375,22 @@ if __name__ == '__main__':
 
     test = [(x) for x in X_test]
 
+
     print("Building NN Classifier")
-    nn = NN_Classifier([3600, 4000, 19])
+    # nn = load('state.json')
+    nn = NN_Classifier([900, 4000, 19])
     print("Fitting Data")
-    nn.fit(train, 500, 1000, .9, 0.01, validate, True, True, True, True)
+    nn.fit(train, 10, 1000, .9, 0.01, validate, True, True, True, True)
+
+    pred_train = [(x) for x in X_train]
+    pred_valid = [(x) for x in X_valid]
+    predictions = nn.predict(pred_train, "_train")
+    predictions = nn.predict(pred_valid, "_valid")
+
+
 
     print("Making Predictions")
-    predictions = nn.predict(test)
+    predictions = nn.predict(test, "_realtest")
 
 
 
