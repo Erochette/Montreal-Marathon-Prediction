@@ -24,7 +24,7 @@ import time
 
 def write_prediction(list_of_results, index):
     print("Writing Prediciton file")
-    with open('predictions_cnn0_%s_%s.csv' % (index, time.strftime("%Y%m%d-%H%M%S")), 'ab') as output_file:
+    with open('predictions_cnn0_training_%s_%s.csv' % (index, time.strftime("%Y%m%d-%H%M%S")), 'ab') as output_file:
         header = ['Id', 'Prediction']
         writer = csv.DictWriter(output_file, fieldnames=header)
         writer.writeheader()
@@ -158,15 +158,16 @@ if __name__ == '__main__':
     print y.shape
 
     # Uncomment to run a previous model
-    # net0.load_weights_from('model.npz')
-    # net0.initialize()
+    net0.load_weights_from('model.npz')
+    net0.initialize()
 
     # alternative network to run
     # net = net4
     net = net0
+    write_prediction(net.predict(X), 100)
 
-    run_epochs(net, X, y, test_x, 500)
-    graph_stats(net, X, y)
+    # run_epochs(net, X, y, test_x, 500)
+    # graph_stats(net, X, y)
 
 
 

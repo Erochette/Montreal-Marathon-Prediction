@@ -1,0 +1,50 @@
+Building NN Classifier
+Fitting Data
+minibatch 79 / 80 processing:999/1000 
+Epoch 0 training complete
+Cost on training data: 560.922372493
+Accuracy on training data: 809 / 80000
+Cost on evaluation data: 2051.88009385
+Accuracy on evaluation data: 197 / 20000
+ 
+minibatch 79 / 80 processing:999/1000 
+Epoch 1 training complete
+Cost on training data: 3639.92770444
+Accuracy on training data: 1152 / 80000
+Cost on evaluation data: 14380.9675767
+Accuracy on evaluation data: 271 / 20000
+ 
+minibatch 79 / 80 processing:999/1000 
+Epoch 2 training complete
+Cost on training data: 11037.4268956
+Accuracy on training data: 6554 / 80000
+Cost on evaluation data: 43908.3011957
+Accuracy on evaluation data: 1539 / 20000
+ 
+minibatch 79 / 80 processing:999/1000 
+Epoch 3 training complete
+Cost on training data: 23863.1622127
+Accuracy on training data: 898 / 80000
+Cost on evaluation data: 95173.9129963
+Accuracy on evaluation data: 193 / 20000
+ 
+minibatch 79 / 80 processing:999/1000 
+Epoch 4 training complete
+Cost on training data: 42697.9608315
+Accuracy on training data: 4116 / 80000
+Cost on evaluation data: 170567.699656
+Accuracy on evaluation data: 1017 / 20000
+ 
+minibatch 79 / 80 processing:999/1000 
+Epoch 5 training complete
+Cost on training data: 67828.5994473
+Accuracy on training data: 4522 / 80000
+Cost on evaluation data: 271108.053544
+Accuracy on evaluation data: 1111 / 20000
+ 
+minibatch 79 / 80 processing:999/1000 
+Epoch 6 training complete
+Cost on training data: 99422.3500246
+Accuracy on training data: 1265 / 80000
+Cost on evaluation data: 397492.690781
+Accuracy on evaluation data: 298 / 20000
